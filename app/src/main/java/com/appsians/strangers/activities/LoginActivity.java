@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+import com.google.android.gms.common.api.ApiException;
 
 import com.appsians.strangers.R;
 import com.appsians.strangers.models.User;
@@ -73,15 +74,31 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == RC_SIGN_IN) {
+        // Check if the request code matches the Google Sign-In request
+        if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            GoogleSignInAccount account = task.getResult();
-            authWithGoogle(account.getIdToken());
+            try {
+                // Google Sign-In was successful, authenticate with Firebase
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                Log.d("LoginActivity", "Google sign in successful. ID Token: " + account.getIdToken());
+                authWithGoogle(account.getIdToken());
+            } catch (ApiException e) {
+                // Log detailed error with status code and message
+                Log.e("LoginActivity", "Google sign in failed with error code: " + e.getStatusCode() + ", message: " + e.getMessage(), e);
+
+                // Additional handling for specific error codes
+                if (e.getStatusCode() == 10) {  // DEVELOPER_ERROR
+                    Log.e("LoginActivity", "Developer error: Check if OAuth 2.0 Web Client ID and SHA-1 are configured properly.");
+                }
+
+                Toast.makeText(this, "Google Sign-In failed: " + e.getStatusCode(), Toast.LENGTH_LONG).show();
+            }
         }
     }
+
 
     void authWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);

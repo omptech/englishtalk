@@ -3,17 +3,36 @@ plugins {
 }
 apply plugin: 'com.google.gms.google-services'
 android {
-    compileSdkVersion 30
+    compileSdkVersion 34
     buildToolsVersion "30.0.3"
 
     buildFeatures{
         viewBinding true
     }
+    namespace "com.appsians.strangers"
+    afterEvaluate {
+        // Set the dependency for debug variant
+        tasks.named('mergeDebugResources').configure {
+            dependsOn tasks.named('processDebugGoogleServices')
+        }
+
+        // Set the dependency for release variant
+        tasks.named('mergeReleaseResources').configure {
+            dependsOn tasks.named('processReleaseGoogleServices')
+        }
+    }
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.android.gms:play-services-measurement:20.1.2'
+            force 'com.google.android.gms:play-services-measurement-impl:20.1.2'
+        }
+    }
+
 
     defaultConfig {
         applicationId "com.appsians.strangers"
-        minSdkVersion 19
-        targetSdkVersion 30
+        minSdkVersion 21
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -45,13 +64,13 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-database'
-    implementation 'com.google.android.gms:play-services-auth:19.2.0'
+    implementation 'com.google.android.gms:play-services-ads:22.1.0'
 
+    implementation 'com.google.android.gms:play-services-auth:20.7.0'
 
     implementation 'com.airbnb.android:lottie:4.1.0'
     implementation 'com.mikhaellopez:circularimageview:4.3.0'
-    implementation 'com.kaopiz:kprogresshud:1.2.0'
-    implementation 'com.google.android.gms:play-services-ads:20.4.0'
+    implementation 'com.github.harrisonsj:KProgressHUD:1.1'
 
     implementation 'com.github.bumptech.glide:glide:4.12.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
